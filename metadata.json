@@ -1,0 +1,10 @@
+{
+  "description": "Replacement of OSD.",
+  "name": "Alternative OSD",
+  "shell-version": [
+    "3.36"
+  ],
+  "url": "https://github.com/alex4401/gnome-extension-osd",
+  "uuid": "osd@alex4401.github.com",
+  "version": 1
+}

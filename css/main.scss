@@ -1,0 +1,23 @@
+Gjs_ui_osdWindow_OsdWindow {
+    height: 16px;
+}
+
+.osd-window {
+    text-align: center;
+    font-weight: 400;
+    margin: 12px 16px;
+    border-radius: 8px;
+    min-width: 96px !important;
+    min-height: 16px !important;
+
+    StLabel {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .level {
+        height: 0.3em;
+        border-radius: 9999px;
+        -barlevel-height: 0.3em;
+    }
+}
