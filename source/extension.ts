@@ -5,6 +5,7 @@ const Main = imports.ui.main;
 const Clutter = imports.gi.Clutter;
 const GObject = imports.gi.GObject;
 const St = imports.gi.St;
+const GLib = imports.gi.GLib;
 
 
 var OsdWindowConstraint = GObject.registerClass(
@@ -77,8 +78,8 @@ class FExtensionOSD extends Base.FExtensionBase {
     enable(): void {
         //InjectUtils.Inject(Main.osdWindowManager, '_monitorsChanged', this.HandleMonitorsChanged);
         this.MonitorsChangedId = Main.layoutManager.connect('monitors-changed', this.HandleMonitorsChanged.bind(this));
+        this.HandleMonitorsChanged();
 
-        this.SkinOSDWindows();
     }
 
     disable(): void {
@@ -86,7 +87,9 @@ class FExtensionOSD extends Base.FExtensionBase {
     }
 
     HandleMonitorsChanged(): void {
-        this.SkinOSDWindows();
+        GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 0.1, () => {
+            this.SkinOSDWindows();
+        });
     }
 
     SkinOSDWindows(): void {
@@ -96,6 +99,7 @@ class FExtensionOSD extends Base.FExtensionBase {
             const OSDWindow = OWM._osdWindows[i];
 
             if (OSDWindow.__reskinned) {
+                this._relayout(OSDWindow);
                 continue;
             }
             OSDWindow.__reskinned = true;
