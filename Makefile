@@ -22,7 +22,7 @@ clean:
 
 transpile: $(sources)
 	rm -rf build
-	tsc
+	tsc --skipLibCheck
 	
 stylesheet.css:
 	sass css/main.scss:build/stylesheet.css
