@@ -31,7 +31,7 @@ export class FExtension extends Base.FExtensionBase {
     HandleMonitorsChanged(): void {
         GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 0.1, () => {
             this.SkinOsdWindows();
-            return true;
+            return false;
         });
     }
 
