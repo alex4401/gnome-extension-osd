@@ -2,7 +2,7 @@
   "description": "Replacement of OSD.",
   "name": "Alternative OSD",
   "shell-version": [
-    "3.36"
+    "3.38"
   ],
   "url": "https://github.com/alex4401/gnome-extension-osd",
   "uuid": "osd@alex4401.github.com",

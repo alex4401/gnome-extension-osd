@@ -1,7 +1,66 @@
 const Clutter = imports.gi.Clutter;
+const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Main = imports.ui.main;
 const St = imports.gi.St;
+
+
+export abstract class FOsdSkinnerBase {
+    private MonitorsChangedId: number = 0;
+
+    public Enable(): void {
+        // Theme OSD windows that already exist, and listen for
+        // future changes.
+        this.MonitorsChangedId = Main.layoutManager.connect('monitors-changed', this.HandleMonitorsChanged.bind(this));
+        this.HandleMonitorsChanged();
+    }
+
+    public Disable(): void {
+        Main.layoutManager.disconnect(this.MonitorsChangedId);
+    }
+
+    private HandleMonitorsChanged(): void {
+        GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 0.1, () => {
+            const owm = Main.osdWindowManager;
+
+            for (let index = 0; index < Main.layoutManager.monitors.length; index++) {
+                const osdWindow = owm._osdWindows[index];
+                this.ReskinActorSafe(osdWindow);
+            }
+
+            return false;
+        });
+    }
+
+    public ReskinActorSafe(osdWindow: any): void {
+        // Skip if the object has been already reskinned
+        if (osdWindow.__reskinned) {
+            this.RelayoutActor(osdWindow);
+            return;
+        }
+        osdWindow.__reskinned = true;
+
+        // Actor has not been skinned before. Do it now.
+        this.ReskinActor(osdWindow);
+
+        // Disconnect existing scale changed callbacks
+        // @ts-ignore
+        const themeContext = St.ThemeContext.get_for_stage(global.stage);
+        if (osdWindow._scaleChangedId) {
+            themeContext.disconnect(osdWindow._scaleChangedId);
+        }
+
+        // Connect our relayout callback to scale change signal.
+        const callback = this.RelayoutActor.bind(this, osdWindow);
+        osdWindow._scaleChangedId = themeContext.connect('notify::scale-factor', callback);
+        osdWindow._relayout = callback;
+        callback();
+    }
+
+    public abstract ReskinActor(osdWindow: any): void;
+    public abstract RelayoutActor(osdWindow: any): void;
+}
+
 
 export var OsdWindowConstraint = GObject.registerClass(
     class OsdWindowConstraint extends Clutter.Constraint {
@@ -62,14 +121,8 @@ export var OsdWindowConstraint = GObject.registerClass(
 );
 
 
-export interface IOsdSkinner {
-    reskinActor(osdWindow: any): void;
-    relayoutActor(osdWindow: any): void;
-}
-
-
-export class OsdSkinner implements IOsdSkinner {
-    public reskinActor(osdWindow: any): void {
+export class FOsdSkinCompact extends FOsdSkinnerBase {
+    public ReskinActor(osdWindow: any): void {
         const icon = osdWindow._icon;
         const levelBar = osdWindow._level;
         const label = osdWindow._label;
@@ -111,7 +164,7 @@ export class OsdSkinner implements IOsdSkinner {
         osdWindow._gridlayout = gridLayout;
     }
 
-    public relayoutActor(osdWindow: any): void {
+    public RelayoutActor(osdWindow: any): void {
         /* assume 110x110 on a 640x480 display and scale from there */
         // @ts-ignore
         const monitor = Main.layoutManager.monitors[osdWindow._monitorIndex];
